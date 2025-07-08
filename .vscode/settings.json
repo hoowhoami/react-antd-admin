@@ -1,4 +1,7 @@
 {
+	"git.enableSmartCommit": true,
+	"workbench.iconTheme": "file-icons",
+	"redhat.telemetry.enabled": true,
 	"cSpell.words": [
 		"antd",
 		"ahooks",
@@ -17,10 +20,11 @@
 	"prettier.enable": false,
 	// Auto fix
 	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit",
+		"source.fixAll.eslint": "always",
+		"source.fixAll.stylelint": "always",
 		"source.organizeImports": "never"
 	},
-	"editor.formatOnSave": true,
+	"editor.formatOnSave": false,
 	"editor.renderWhitespace": "all",
 	// Enable eslint for all supported languages
 	"eslint.validate": [

@@ -9,15 +9,15 @@ export function getConstantColumns(t: TFunction<"translation", undefined>): ProC
 		{
 			dataIndex: "index",
 			title: t("common.index"),
-			valueType: "indexBorder",
-			width: 80,
+			valueType: "index",
+			width: 50,
 		},
 		{
 			title: t("system.role.name"),
 			dataIndex: "name",
 			disable: true,
 			ellipsis: true,
-			width: 120,
+			minWidth: 120,
 			formItemProps: {
 				rules: [
 					{
@@ -31,7 +31,7 @@ export function getConstantColumns(t: TFunction<"translation", undefined>): ProC
 			disable: true,
 			title: t("system.role.id"),
 			dataIndex: "code",
-			width: 120,
+			minWidth: 120,
 			filters: true,
 			onFilter: true,
 			ellipsis: true,
@@ -41,7 +41,7 @@ export function getConstantColumns(t: TFunction<"translation", undefined>): ProC
 			title: t("common.status"),
 			dataIndex: "status",
 			valueType: "select",
-			width: 80,
+			minWidth: 80,
 			render: (text, record) => {
 				return <Tag color={record.status === 1 ? "success" : "default"}>{text}</Tag>;
 			},
@@ -58,19 +58,20 @@ export function getConstantColumns(t: TFunction<"translation", undefined>): ProC
 			title: t("common.remark"),
 			dataIndex: "remark",
 			search: false,
+			minWidth: 100,
 		},
 		{
 			title: t("common.createTime"),
 			dataIndex: "createTime",
 			valueType: "date",
-			width: 100,
+			minWidth: 100,
 			search: false,
 		},
 		{
 			title: t("common.updateTime"),
 			dataIndex: "updateTime",
 			valueType: "dateTime",
-			width: 170,
+			minWidth: 170,
 			search: false,
 		},
 	];
