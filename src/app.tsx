@@ -15,7 +15,20 @@ import "dayjs/locale/zh-cn";
 
 export default function App() {
 	const { i18n } = useTranslation();
-	const { language, isDark, theme, themeColorPrimary, colorBlindMode, colorGrayMode, themeRadius, changeSiteTheme } = usePreferences();
+	const {
+		language,
+		isDark,
+		theme,
+		themeColorPrimary,
+		colorBlindMode,
+		colorGrayMode,
+		themeRadius,
+		changeSiteTheme,
+
+		enableCheckUpdates,
+		checkUpdatesInterval,
+		sideCollapsedWidth,
+	} = usePreferences();
 
 	useScrollToHash();
 
@@ -117,12 +130,23 @@ export default function App() {
 					borderRadius: themeRadius,
 					colorPrimary: themeColorPrimary,
 				},
+				components: {
+					...(isDark ? customAntdDarkTheme.components : customAntdLightTheme.components),
+					Menu: {
+						darkItemBg: "#141414",
+						itemBg: "#fff",
+						...(isDark
+							? customAntdDarkTheme.components?.Menu
+							: customAntdLightTheme.components?.Menu),
+						collapsedWidth: sideCollapsedWidth,
+					},
+				},
 			}}
 		>
 			<AntdApp>
 				<JSSThemeProvider>
 					<Suspense fallback={null}>
-						{import.meta.env.VITE_APP_VERSION_MONITOR === "Y" ? <AppVersionMonitor /> : null}
+						{enableCheckUpdates ? <AppVersionMonitor checkUpdatesInterval={checkUpdatesInterval} /> : null}
 						<RouterProvider router={router} />
 					</Suspense>
 				</JSSThemeProvider>

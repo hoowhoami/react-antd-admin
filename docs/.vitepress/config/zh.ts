@@ -1,4 +1,5 @@
-import { type DefaultTheme, defineConfig } from "vitepress";
+import type { DefaultTheme } from "vitepress";
+import { defineConfig } from "vitepress";
 
 export const zh = defineConfig({
 	lang: "zh-Hans",
@@ -50,9 +51,18 @@ export const zh = defineConfig({
 function nav(): DefaultTheme.NavItem[] {
 	return [
 		{
+			text: "在线预览",
+			link: "https://condorheroblog.github.io/react-antd-admin/",
+		},
+		{
 			text: "指南",
 			link: "/zh/guide/introduction/",
 			activeMatch: "/zh/guide/",
+		},
+		{
+			text: "赞助",
+			link: "/zh/sponsor/",
+			activeMatch: "/zh/sponsor/",
 		},
 	];
 }
@@ -63,6 +73,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
 			text: "简介",
 			items: [
 				{ text: "介绍", link: "introduction" },
+				{
+					link: "introduction/why",
+					text: "为什么选择我们",
+				},
 				{ text: "快速开始", link: "introduction/quick-start" },
 			],
 		},
@@ -85,7 +99,9 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
 				{ text: "国际化", link: "advanced/locale" },
 				{ text: "权限", link: "advanced/access" },
 				{ text: "主题", link: "advanced/theme" },
-				{ text: "App Loading", link: "advanced/loading" },
+				{ text: "应用 Loading", link: "advanced/loading" },
+				{ text: "监控网站更新", link: "advanced/monitoring-updates" },
+				{ text: "项目升级", link: "advanced/upgrading" },
 			],
 		},
 	];

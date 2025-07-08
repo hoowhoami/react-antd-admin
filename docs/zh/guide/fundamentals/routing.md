@@ -4,39 +4,52 @@ outline: deep
 
 # 路由和菜单
 
-本项目使用 [React Router](https://reactrouter.com/) 的数据路由生成路由，并根据路由自动生成菜单。
+> 演示项目为了可以部署到 GitHub，路由模式为 Hash 模式，如果你需要 History 模式，请修改 `.env.production` 文件中的变量 `VITE_ROUTER_MODE` 为 `history`。
+
+项目使用 [React Router](https://reactrouter.com/) 的数据路由生成路由，并根据路由自动生成菜单。
+
+::: tip
+
+除了初次进入系统，即登录页面，项目中禁止使用 `navigate("/")` 直接跳转到首页，这会重新渲染这个应用，请使用 `navigate(import.meta.env.VITE_BASE_HOME_PATH)` 替代。
+
+:::
 
 ## 路由目录
 
 ```bash
 src/router
-├── constants.ts               # 路由常量，包含路由白名单
-├── router-global-hooks.ts     # 路由拦截钩子
-├── utils                      # 路由工具
-├── types                      # 路由类型
-├── guards                     # 路由守卫
-├── index.ts                   # 路由配置文件
+├── constants.ts                   # 路由常量
+├── utils                          # 路由工具
+├── types                          # 路由类型
+│   │   ├── guard                  # 路由守卫
+│   │   │   ├── auth-guard.tsx     # 权限守卫
+│   │   │   └── index.ts           # 路由守卫聚合
+├── index.ts                       # 路由配置文件
 ├── extra-info
-│   ├── order                  # 路由顺序决定菜单排序
-│   └── index.ts               # 聚合导出
+│   ├── order                      # 路由顺序决定菜单排序
+│   └── index.ts                   # 聚合导出
 └── routes
-    ├── core                   # 核心路由
-    ├── modules                # 动态路由
-    └── static                 # 静态路由
-    └── index.ts               # 聚合路由
+    ├── core                       # 核心路由
+    ├── external                   # 外部路由
+    ├── modules                    # 动态路由
+    ├── static                     # 静态路由
+    └── index.ts                   # 聚合路由
 ```
 
 ## 路由类型
 
-路由分为三大类：核心路由、静态路由和动态路由。
+路由分为四大类：核心路由、外部路由、静态路由和动态路由。
 
-1. 核心路由应用必须的包含的路由，例如根路由、登录路由、404 路由等；
-2. 静态路由或者叫前端路由，是在项目启动时就已经确定的路由；
-3. 动态路由或者叫后端路由，在用户登录后，根据用户的权限动态生成的路由。
+1. 核心路由是应用必须的包含的路由，例如根路由、登录路由、404 路由、403 路由等；
+2. 外部路由即不需要登录和权限认证的路由，例如网站的文档、用户协议、隐私政策等；
+3. 静态路由或者叫前端路由，是在项目启动时就已经确定的路由；
+4. 动态路由或者叫后端路由，在用户登录后，根据接口返回的结果动态生成的路由。
 
 ### 核心路由
 
-核心路由是应用必须的包含的路由，例如根路由、登录路由、404 路由等；核心路由的配置在应用下 `src/router/routes/core` 目录下
+核心路由是应用必须的包含的路由，例如根路由、登录路由、404 路由等；核心路由的配置在应用下 `src/router/routes/core` 目录下。
+
+> **项目中，请设置核心路由在菜单中隐藏（`hideInMenu = true`）**
 
 ::: tip
 
@@ -44,39 +57,24 @@ src/router
 
 :::
 
+### 外部路由
+
+外部路由即不需要登录和权限认证的路由，例如网站的文档、用户协议、隐私政策等；外部路由的配置在应用下 `src/router/routes/external` 目录下。
+
 ### 静态路由
 
 静态路由存储在 `src/router/routes/static` 目录下，如果不需要静态路由，保持这个文件夹为空即可。
 
 ### 动态路由
 
-动态路由存储在 `src/router/routes/modules` 目录下，如果不需要动态路由，保持这个文件夹为空即可。
+动态路由存储在 `src/router/routes/modules` 目录下。
 
-### 如何关闭动态路由
+- 路由仅为调用后端获取的情况下，即 `设置 enableBackendAccess 为 true 、enableFrontendAceess 为 false`，此目录仅仅作为备份，并不会被读取。
+- 路由仅为前端获取的情况下，即 `设置 enableBackendAccess 为 false 、enableFrontendAceess 为 true`，则会读取此目录下的路由。
 
-在 `src/router/routes/config` 文件中配置 isDynamicRoutingEnabled 属性为 false，即可关闭动态路由。
+### 路由获取的方式
 
-::: warning
-
-关闭动态路由后，在 `src/router/routes/index.ts` 中的代码会尝试读取 modules 目录下的路由，方便调试，开启动态路由的情况下，则不会读取 modules 目录下的路由。
-
-:::
-
-### 如何关闭静态路由
-
-保持 `src/router/routes/static` 文件夹为空即可，或者在 `src/router/routes/index.ts` 注释掉静态路由的代码即可。
-
-```ts
-/** 静态路由 */
-// const staticRoutes: AppRouteRecordRaw[] = mergeRouteModules(staticRouteFiles); // [!code ++]
-
-/** 根路由下的子路由 */
-const rootChildRoutes = ascending([
-	...coreRouteRootChildren,
-	...(!isDynamicRoutingEnabled ? dynamicRoutes : []),
-	// ...staticRoutes, // [!code ++]
-]);
-```
+查看权限控制章节，请查看 [权限](../advanced/access)。
 
 ## 路由 id
 
@@ -169,12 +167,6 @@ export default routes;
 
 :::
 
-::: warning
-
-React 的 lazy 一定要放在模块的顶部，否则使用的方式是无效的，参见 [My lazy component’s state gets reset unexpectedly](https://react.dev/reference/react/lazy#my-lazy-components-state-gets-reset-unexpectedly)
-
-:::
-
 ## 索引路由
 
 如果使用了 [索引路由](https://reactrouter.com/en/main/route/route#index) 请把权限、图标等信息写在 `index` 路由中，这样在生成菜单时，会自动获取到权限、图标等信息。
@@ -187,7 +179,7 @@ import { ContainerLayout } from "#src/layout";
 
 import { $t } from "#src/locales";
 import { home } from "#src/router/extra-info";
-import { HomeFilled } from "@ant-design/icons";
+import { HomeOutlined } from "@ant-design/icons";
 import { createElement, lazy } from "react";
 
 const Home = lazy(() => import("#src/pages/home"));
@@ -199,7 +191,7 @@ const routes: AppRouteRecordRaw[] = [
 		handle: {
 			order: home,
 			title: $t("common.menu.home"),
-			icon: createElement(HomeFilled),
+			icon: createElement(HomeOutlined),
 		},
 		children: [
 			{
@@ -207,7 +199,7 @@ const routes: AppRouteRecordRaw[] = [
 				Component: Home,
 				handle: {
 					title: $t("common.menu.home"), // [!code ++]
-					icon: createElement(HomeFilled), // [!code ++]
+					icon: createElement(HomeOutlined), // [!code ++]
 				},
 			},
 		],
@@ -231,7 +223,7 @@ import { ContainerLayout } from "#src/layout";
 
 import { $t } from "#src/locales";
 import { home } from "#src/router/extra-info";
-import { HomeFilled } from "@ant-design/icons";
+import { HomeOutlined } from "@ant-design/icons";
 import { createElement, lazy } from "react";
 
 const Home = lazy(() => import("#src/pages/home"));
@@ -243,7 +235,7 @@ const routes: AppRouteRecordRaw[] = [
 		handle: {
 			order: home, // [!code ++]
 			title: $t("common.menu.home"),
-			icon: createElement(HomeFilled),
+			icon: createElement(HomeOutlined),
 		},
 		children: [
 			{
@@ -251,7 +243,7 @@ const routes: AppRouteRecordRaw[] = [
 				Component: Home,
 				handle: {
 					title: $t("common.menu.home"),
-					icon: createElement(HomeFilled),
+					icon: createElement(HomeOutlined),
 				},
 			},
 		],
@@ -263,9 +255,9 @@ export default routes;
 
 :::
 
-## 新增页面
+## 新增路由
 
-新增一个页面的步骤如下：
+新增路由的步骤如下：
 
 1. 添加路由文件
 2. 添加页面组件
@@ -274,13 +266,15 @@ export default routes;
 
 在对应的路由文件夹下添加一个路由文件，如下：
 
+> 需要登录才能访问的路由中，必须在根路由中使用 ContainerLayout 组件，否则会导致菜单无法正常显示。**所以一级路由需要嵌套在 children 中，并设定 index = true**
+
 ```ts
 import type { AppRouteRecordRaw } from "#src/router/types";
 import { ContainerLayout } from "#src/layout";
 
 import { $t } from "#src/locales";
 import { home } from "#src/router/extra-info";
-import { HomeFilled } from "@ant-design/icons";
+import { HomeOutlined } from "@ant-design/icons";
 import { createElement, lazy } from "react";
 
 const Home = lazy(() => import("#src/pages/home"));
@@ -292,7 +286,7 @@ const routes: AppRouteRecordRaw[] = [
 		handle: {
 			order: home,
 			title: $t("common.menu.home"),
-			icon: createElement(HomeFilled),
+			icon: createElement(HomeOutlined),
 		},
 		children: [
 			{
@@ -300,7 +294,7 @@ const routes: AppRouteRecordRaw[] = [
 				Component: Home,
 				handle: {
 					title: $t("common.menu.home"),
-					icon: createElement(HomeFilled),
+					icon: createElement(HomeOutlined),
 				},
 			},
 		],
@@ -346,7 +340,7 @@ const routes = [
 		handle: {
 			order: home,
 			title: $t("common.menu.home"),
-			icon: createElement(HomeFilled),
+			icon: createElement(HomeOutlined),
 		},
 	},
 ];
@@ -403,7 +397,7 @@ export interface RouteMeta {
 	externalLink?: string
 
 	/**
-	 * 是否忽略权限，即无需登录即可访问
+	 * 用于配置页面是否忽略权限，直接可以访问
 	 */
 	ignoreAccess?: boolean
 
@@ -490,7 +484,7 @@ iframe 链接，如果路由需要在 iframe 中加载外部页面时使用。
 - 类型：`boolean`
 - 默认值：`false`
 
-是否忽略权限，即无需登录即可访问。
+用于配置页面是否忽略权限，直接可以访问。
 
 ### currentActiveMenu
 

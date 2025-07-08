@@ -2,7 +2,7 @@ import type { MenuItemType } from "#src/api/system";
 import type { ActionType, ProColumns, ProCoreActionType } from "@ant-design/pro-components";
 import { fetchDeleteMenuItem, fetchMenuList } from "#src/api/system/menu";
 import { BasicButton, BasicContent, BasicTable } from "#src/components";
-import { useAuth } from "#src/hooks";
+import { accessControlCodes, useAccess } from "#src/hooks";
 import { handleTree } from "#src/utils";
 
 import { PlusCircleOutlined } from "@ant-design/icons";
@@ -15,7 +15,7 @@ import { getConstantColumns } from "./constants";
 
 export default function Menu() {
 	const { t } = useTranslation();
-	const hasAuth = useAuth();
+	const { hasAccessByCodes } = useAccess();
 	/* Detail Data */
 	const [isOpen, setIsOpen] = useState(false);
 	const [title, setTitle] = useState("");
@@ -27,7 +27,7 @@ export default function Menu() {
 	const handleDeleteRow = async (id: number, action?: ProCoreActionType<object>) => {
 		const responseData = await fetchDeleteMenuItem(id);
 		await action?.reload?.();
-		window.$message?.success(`${t("common.deleteSuccess")} userId = ${responseData.result}`);
+		window.$message?.success(`${t("common.deleteSuccess")} id = ${responseData.result}`);
 	};
 
 	const columns: ProColumns<MenuItemType>[] = [
@@ -44,7 +44,7 @@ export default function Menu() {
 						key="editable"
 						type="link"
 						size="small"
-						disabled={!hasAuth("update")}
+						disabled={!hasAccessByCodes(accessControlCodes.update)}
 						onClick={async () => {
 							setIsOpen(true);
 							setTitle(t("system.menu.editMenu"));
@@ -60,7 +60,7 @@ export default function Menu() {
 						okText={t("common.confirm")}
 						cancelText={t("common.cancel")}
 					>
-						<BasicButton type="link" size="small" disabled={!hasAuth("delete")}>{t("common.delete")}</BasicButton>
+						<BasicButton type="link" size="small" disabled={!hasAccessByCodes(accessControlCodes.delete)}>{t("common.delete")}</BasicButton>
 					</Popconfirm>,
 				];
 			},
@@ -79,6 +79,7 @@ export default function Menu() {
 	return (
 		<BasicContent className="h-full">
 			<BasicTable<MenuItemType>
+				adaptive
 				columns={columns}
 				actionRef={actionRef}
 				request={async (params) => {
@@ -104,7 +105,7 @@ export default function Menu() {
 						key="add-role"
 						icon={<PlusCircleOutlined />}
 						type="primary"
-						disabled={!hasAuth("add")}
+						disabled={!hasAccessByCodes(accessControlCodes.add)}
 						onClick={() => {
 							setIsOpen(true);
 							setTitle(t("system.menu.addMenu"));

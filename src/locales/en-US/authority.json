@@ -1,7 +1,18 @@
 {
+	"welcomeBack": "Welcome Back",
+	"loginDescription": "Login to your account",
+	"pageTitle": "Out-of-the-box Admin System",
+	"pageDescription": "A simple, lightweight, and easy-to-use",
+	"layout": {
+		"alignLeft": "Align Left",
+		"alignCenter": "Align Center",
+		"alignRight": "Align Right"
+	},
 	"username": "Username",
 	"password": "Password",
 	"login": "Login",
+	"loginInProgress": "Login in progress ...",
+	"loginSuccess": "Login Successful",
 	"codeLogin": "Code Login",
 	"forgotPassword": "Forgot Password",
 	"retryAfterText": "{{ count }} seconds later you can try again",
@@ -9,7 +20,7 @@
 	"mobile": "Mobile",
 	"mobileLogin": "Mobile Login",
 	"sendCode": "Get Security code",
-	"sendText": "Resend in { second } s",
+	"sendText": "Resend in {{ second }} s",
 	"forgotPasswordSubtitle": "Enter your email and we'll send you instructions to reset your password",
 	"email": "Email",
 	"sendResetLink": "Send Reset Link",

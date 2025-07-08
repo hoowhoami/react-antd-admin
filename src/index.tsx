@@ -1,7 +1,6 @@
 import { TanstackQuery } from "#src/components";
 import { setupI18n } from "#src/locales";
 import { setupLoading } from "#src/plugins";
-import { setupRouter } from "#src/router";
 
 // import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -10,14 +9,14 @@ import App from "./app";
 import "./styles/index.css";
 
 async function setupApp() {
-	// App Loading
-	setupLoading();
-
-	/* setupI18n 必须放在 setupRouter 前面 */
+	/**
+	 * @zh 初始化国际化，必须放在第一位，loading 中引用了国际化
+	 * @en Initialize internationalization, must be placed first. Loading refer to internationalization
+	 */
 	setupI18n();
 
-	/* setupRouter 使用了 setupI18n，所以必须放在 setupI18n 后面 */
-	await setupRouter();
+	// App Loading
+	setupLoading();
 
 	const rootElement = document.getElementById("root");
 	if (!rootElement)

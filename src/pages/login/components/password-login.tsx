@@ -1,22 +1,19 @@
 import { BasicButton } from "#src/components";
 import { PASSWORD_RULES, USERNAME_RULES } from "#src/constants";
-import { isDynamicRoutingEnabled } from "#src/router/routes/config";
-import { useAuthStore, usePermissionStore, useUserStore } from "#src/store";
+import { useAuthStore } from "#src/store";
 
 import {
 	Button,
 	Form,
 	Input,
+	message,
 	Space,
-	Typography,
 } from "antd";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FormModeContext } from "../form-mode-context";
-
-const { Title } = Typography;
 
 const FORM_INITIAL_VALUES = {
 	username: "admin",
@@ -28,69 +25,48 @@ export function PasswordLogin() {
 	const [loading, setLoading] = useState(false);
 	const [passwordLoginForm] = Form.useForm();
 	const { t } = useTranslation();
+	const [messageLoadingApi, contextLoadingHolder] = message.useMessage();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const login = useAuthStore(state => state.login);
-	const handleAsyncRoutes = usePermissionStore(state => state.handleAsyncRoutes);
-	const getUserInfo = useUserStore(state => state.getUserInfo);
 	const { setFormMode } = useContext(FormModeContext);
 
 	const handleFinish = async (values: PasswordLoginFormType) => {
 		setLoading(true);
+		messageLoadingApi?.loading(t("authority.loginInProgress"), 0);
 
-		try {
-			/* 先登录 */
-			await login(values);
-
-			/* ================= 分割线 ================= */
-			// 初始化一个空数组来存放 Promise 对象
-			const promises = [];
-
-			// 总是添加获取用户信息的 Promise
-			promises.push(getUserInfo());
-
-			// 如果启用了动态路由，则添加处理动态路由的 Promise
-			if (isDynamicRoutingEnabled) {
-				promises.push(handleAsyncRoutes());
-			}
-			const results = await Promise.allSettled(
-				/**
-				 * getUserInfo 和 handleAsyncRoutes 逻辑应该出现在 routerBeforeEach 中
-				 * 但是因为 routerBeforeEach 不支持 异步调用 所以临时放在登录逻辑中
-				 */
-				promises,
-			);
-			/* ================= 分割线 ================= */
-
-			const hasError = results.some(result => result.status === "rejected");
-			// 网络请求失败，跳转到 500 页面
-			if (hasError) {
-				navigate("/error/500");
+		login(values).then(() => {
+			messageLoadingApi?.destroy();
+			window.$message?.success(t("authority.loginSuccess"));
+			const redirect = searchParams.get("redirect");
+			if (redirect) {
+				navigate(`/${redirect.slice(1)}`);
 			}
 			else {
-				const redirect = searchParams.get("redirect");
-				if (redirect) {
-					navigate(`/${redirect.slice(1)}`);
-				}
-				else {
-					navigate("/");
-				}
+				navigate(import.meta.env.VITE_BASE_HOME_PATH);
 			}
-		}
-		finally {
-			setLoading(false);
-		}
+		}).finally(() => {
+			messageLoadingApi?.destroy();
+			// Prevent multiple requests from being made by clicking the login button
+			setTimeout(() => {
+				window.$message?.destroy();
+				setLoading(false);
+			}, 1000);
+		});
 	};
 
 	return (
 		<>
+			{contextLoadingHolder}
 			<Space direction="vertical">
-				<Title level={3}>
-					Hello, Welcome to
-				</Title>
-				<Title className="mt-0" level={5}>
-					{import.meta.env.VITE_GLOB_APP_TITLE}
-				</Title>
+				<h2 className="text-colorText mb-3 text-3xl font-bold leading-9 tracking-tight lg:text-4xl">
+					{t("authority.welcomeBack")}
+					&nbsp;
+					👏
+				</h2>
+				<p className="lg:text-base text-sm text-colorTextSecondary">
+					{t("authority.loginDescription")}
+				</p>
 			</Space>
 
 			<Form

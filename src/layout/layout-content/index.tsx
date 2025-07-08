@@ -1,8 +1,13 @@
 import { GlobalSpin, Scrollbar } from "#src/components";
-import { usePermissionStore, usePreferencesStore, useTabsStore } from "#src/store";
+import { useLayoutContentStyle } from "#src/hooks";
+import { LayoutFooter } from "#src/layout";
+import { CSS_VARIABLE_LAYOUT_CONTENT_HEIGHT, ELEMENT_ID_MAIN_CONTENT } from "#src/layout/constants";
+import { useAccessStore, usePreferencesStore, useTabsStore } from "#src/store";
+
 import { theme } from "antd";
-import KeepAlive, { useKeepaliveRef } from "keepalive-for-react";
+import KeepAlive, { useKeepAliveRef } from "keepalive-for-react";
 import { useEffect, useMemo } from "react";
+
 import { useLocation, useOutlet } from "react-router";
 
 export interface LayoutContentProps { }
@@ -13,13 +18,17 @@ export default function LayoutContent() {
 	} = theme.useToken();
 	const { pathname, search } = useLocation();
 	const outlet = useOutlet();
-	const aliveRef = useKeepaliveRef();
+	const { contentElement } = useLayoutContentStyle();
+
+	const aliveRef = useKeepAliveRef();
 	const isRefresh = useTabsStore(state => state.isRefresh);
 	const openTabs = useTabsStore(state => state.openTabs);
 	const tabbarEnable = usePreferencesStore(state => state.tabbarEnable);
-	const flatRouteList = usePermissionStore(state => state.flatRouteList);
+	const flatRouteList = useAccessStore(state => state.flatRouteList);
 	const transitionName = usePreferencesStore(state => state.transitionName);
 	const transitionEnable = usePreferencesStore(state => state.transitionEnable);
+	const enableFooter = usePreferencesStore(state => state.enableFooter);
+	const fixedFooter = usePreferencesStore(state => state.fixedFooter);
 
 	/**
 	 * to distinguish different pages to cache
@@ -82,7 +91,9 @@ export default function LayoutContent() {
 
 	return (
 		<main
-			className="overflow-y-auto overflow-x-hidden flex-grow"
+			id={ELEMENT_ID_MAIN_CONTENT}
+			ref={contentElement}
+			className="relative overflow-y-auto overflow-x-hidden flex-grow"
 			style={
 				{
 					backgroundColor: colorBgLayout,
@@ -91,19 +102,31 @@ export default function LayoutContent() {
 		>
 			<Scrollbar>
 				<GlobalSpin>
-					<KeepAlive
-						max={20}
-						transition
-						duration={300}
-						cacheNodeClassName={transitionEnable ? `keepalive-${transitionName}` : undefined}
-						exclude={keepAliveExclude}
-						activeCacheKey={cacheKey}
-						aliveRef={aliveRef}
+					<div
+						className="flex flex-col h-full"
 					>
-						{outlet}
-					</KeepAlive>
+						<div
+							style={{
+								height: `var(${CSS_VARIABLE_LAYOUT_CONTENT_HEIGHT})`,
+							}}
+						>
+							<KeepAlive
+								max={20}
+								transition
+								duration={300}
+								cacheNodeClassName={transitionEnable ? `keepalive-${transitionName}` : undefined}
+								exclude={keepAliveExclude}
+								activeCacheKey={cacheKey}
+								aliveRef={aliveRef}
+							>
+								{outlet}
+							</KeepAlive>
+						</div>
+						{enableFooter && !fixedFooter ? <LayoutFooter /> : null}
+					</div>
 				</GlobalSpin>
 			</Scrollbar>
+
 		</main>
 	);
 }

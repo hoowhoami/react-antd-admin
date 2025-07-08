@@ -50,9 +50,6 @@ VITE_API_BASE_URL = "/api"
 # 登录之后默认调转的路由
 VITE_BASE_HOME_PATH = "/home"
 
-# 开启系统自动更新
-VITE_APP_VERSION_MONITOR = "Y"
-
 # 网站标题
 VITE_GLOB_APP_TITLE = "React Antd Admin"
 
@@ -63,7 +60,8 @@ VITE_GLOB_APP_TITLE = "React Antd Admin"
 ```
 
 ```bash [.env.production]
-
+# React Router Mode
+VITE_ROUTER_MODE = hash
 ```
 
 :::
@@ -88,8 +86,8 @@ VITE_PORT=3333
 interface ImportMetaEnv {
 	readonly VITE_API_BASE_URL: string
 	readonly VITE_BASE_HOME_PATH: string
-	readonly VITE_APP_VERSION_MONITOR: "Y" | "N"
 	readonly VITE_GLOB_APP_TITLE: string
+	readonly VITE_ROUTER_MODE: string
 	readonly VITE_PORT: number // [!code ++]
 }
 
@@ -106,14 +104,21 @@ interface ImportMeta {
 
 ![preferences](/guide/preferences.png)
 
-使用偏好配置设置好之后，可以一键复制到 `src/store/preferences.ts` 文件中找到 `DEFAULT_PREFERENCES` 变量直接，覆盖框架默认配置。
+使用偏好配置设置好之后，可以一键复制到 `src/store/preferences/index.ts` 文件中找到 `DEFAULT_PREFERENCES` 变量直接，覆盖框架默认配置。
 
 ```ts
 /**
  * 默认偏好设置
  */
 export const DEFAULT_PREFERENCES = {
+	/* ================== General ================== */
+	enableBackendAccess: true,
+	enableFrontendAceess: false,
 	language: "zh-CN",
+	enableCheckUpdates: true,
+	checkUpdatesInterval: 1,
+	/* ================== General ================== */
+
 	/* ================== Theme ================== */
 	theme: "auto",
 	colorBlindMode: false,
@@ -132,8 +137,7 @@ export const DEFAULT_PREFERENCES = {
 
 	/* ================== Layout ================== */
 	navigationStyle: SIDE_NAVIGATION,
-	sidebarWidth: 210,
-	sideCollapseWidth: COLLAPSED_WIDTH,
+
 	/* ================== Layout ================== */
 
 	/* ================== Tabbar ================== */
@@ -145,6 +149,17 @@ export const DEFAULT_PREFERENCES = {
 	tabbarShowMore: true,
 	tabbarShowMaximize: true,
 	/* ================== Tabbar ================== */
+
+	/* ================== Sidebar ================== */
+	sidebarEnable: true,
+	sidebarWidth: 210,
+	sideCollapsedWidth: 56,
+	sidebarCollapsed: false,
+	sidebarCollapseShowTitle: true,
+	sidebarExtraCollapsedWidth: 48,
+	firstColumnWidthInTwoColumnNavigation: 80,
+	sidebarTheme: "light",
+	/* ================== Sidebar ================== */
 } satisfies PreferencesState;
 ```
 

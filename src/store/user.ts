@@ -4,13 +4,14 @@ import { fetchUserInfo } from "#src/api/user";
 import { create } from "zustand";
 
 const initialState = {
-	userId: "",
+	id: "",
 	avatar: "",
 	username: "",
 	email: "",
 	phoneNumber: "",
 	description: "",
 	roles: [],
+	// menus: [],
 };
 
 type UserState = UserInfoType;

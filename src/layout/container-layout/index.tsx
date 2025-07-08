@@ -1,11 +1,12 @@
-import { useDeviceType } from "#src/hooks";
+import { useDeviceType, useLayoutFooterStyle, useLayoutHeaderStyle } from "#src/hooks";
 import { usePreferencesStore, useTabsStore } from "#src/store";
 import { cn } from "#src/utils";
 
-import { Drawer, Grid } from "antd";
-import { useEffect, useMemo, useState } from "react";
-import { createUseStyles } from "react-jss";
+import { RocketOutlined } from "@ant-design/icons";
+import { FloatButton, Grid, Watermark } from "antd";
+import { useEffect, useMemo } from "react";
 
+import { ELEMENT_ID_MAIN_CONTENT, footerHeight, headerHeight, tabbarHeight } from "../constants";
 import { useLayout } from "../hooks";
 import LayoutContent from "../layout-content";
 import LayoutFooter from "../layout-footer";
@@ -13,25 +14,12 @@ import LayoutHeader from "../layout-header";
 import LayoutMenu from "../layout-menu";
 import { useMenu } from "../layout-menu/use-menu";
 import LayoutMixedSidebar from "../layout-mixed-sidebar";
+import LayoutMobileMenu from "../layout-mobile-menu";
 import LayoutSidebar from "../layout-sidebar";
 import LayoutTabbar from "../layout-tabbar";
 import { BreadcrumbViews, Logo } from "../widgets";
-import { LayoutContext } from "./layout-context";
 
 const { useBreakpoint } = Grid;
-const useStyles = createUseStyles({
-	drawerStyles: {
-		"& .ant-drawer-body": {
-			"padding": 0,
-			"&>ul": {
-				paddingTop: "1em",
-			},
-		},
-		"& .ant-drawer-header": {
-			display: "none",
-		},
-	},
-});
 
 /**
  * Please do not use this component through lazy, otherwise the switching routing page will flash.
@@ -44,41 +32,40 @@ const useStyles = createUseStyles({
  * import { ContainerLayout } from "#src/layout";
  */
 export default function ContainerLayout() {
-	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-	const classes = useStyles();
 	const screens = useBreakpoint();
-	const { isTopNav, isTwoColumnNav, isMixedNav, sidebarWidth, sideCollapseWidth } = useLayout();
+	const { isTopNav, isTwoColumnNav, isMixedNav, sidebarWidth, sideCollapsedWidth, firstColumnWidthInTwoColumnNavigation } = useLayout();
 	const isMaximize = useTabsStore(state => state.isMaximize);
-	const tabbarEnable = usePreferencesStore(state => state.tabbarEnable);
+	const { watermark, watermarkContent, enableFooter, fixedFooter, enableBackTopButton, tabbarEnable, sidebarEnable, sidebarCollapsed, setPreferences } = usePreferencesStore();
 	const { isMobile } = useDeviceType();
 	const { sideNavItems, topNavItems, handleMenuSelect } = useMenu();
+
+	const { setLayoutHeaderHeight } = useLayoutHeaderStyle();
+	const { setLayoutFooterHeight } = useLayoutFooterStyle();
 
 	useEffect(() => {
 		/* iPad */
 		if (screens.lg && !screens.xl) {
-			setSidebarCollapsed(true);
+			setPreferences("sidebarCollapsed", true);
 		}
 		/* PC */
 		else if (screens.xl) {
-			setSidebarCollapsed(false);
+			setPreferences("sidebarCollapsed", false);
 		}
 		/* Mobile */
 		else if (screens.xs || (screens.sm && !screens.md)) {
-			setSidebarCollapsed(false);
+			setPreferences("sidebarCollapsed", false);
 		}
 	}, [screens]);
 
-	const layoutContextValue = useMemo(() => ({ sidebarCollapsed, setSidebarCollapsed }), [sidebarCollapsed, setSidebarCollapsed]);
-
-	const sidebarEnableState = useMemo(() => !isTopNav, [isTopNav]);
+	const sidebarEnableState = useMemo(() => !isTopNav && sidebarEnable, [isTopNav, sidebarEnable]);
 	const computedSidebarWidth = useMemo(() => {
 		if (isMaximize || isMobile) {
 			return 0;
 		}
-		const currentSidebarWidth = sidebarCollapsed ? sideCollapseWidth : sidebarWidth;
+		const currentSidebarWidth = sidebarCollapsed ? sideCollapsedWidth : sidebarWidth;
 		if (isTwoColumnNav) {
 			/* 双列导航，第一列默认宽度 */
-			return currentSidebarWidth + 80;
+			return currentSidebarWidth + (firstColumnWidthInTwoColumnNavigation ?? 0);
 		}
 		if (sidebarEnableState) {
 			return currentSidebarWidth;
@@ -92,11 +79,32 @@ export default function ContainerLayout() {
 		sidebarEnableState,
 		sidebarWidth,
 		sidebarCollapsed,
-		sideCollapseWidth,
+		sideCollapsedWidth,
+		firstColumnWidthInTwoColumnNavigation,
 	]);
 
+	/**
+	 * @zh 计算 header 和 tabbar 的高度
+	 * @en Calculate the height of header and tabbar
+	 */
+	const headerWrapperHeight = useMemo(() => {
+		let height = headerHeight;
+		if (tabbarEnable) {
+			height += tabbarHeight;
+		}
+		return height;
+	}, [tabbarEnable, tabbarHeight]);
+
+	useEffect(() => {
+		setLayoutHeaderHeight(isMaximize ? tabbarHeight : headerWrapperHeight);
+	}, [headerWrapperHeight, isMaximize]);
+
+	useEffect(() => {
+		setLayoutFooterHeight(footerHeight);
+	}, []);
+
 	return (
-		<LayoutContext.Provider value={layoutContextValue}>
+		<Watermark content={watermark ? watermarkContent : ""}>
 			<section
 				style={{
 					paddingLeft: computedSidebarWidth,
@@ -117,22 +125,8 @@ export default function ContainerLayout() {
 				</LayoutHeader>
 				{tabbarEnable ? <LayoutTabbar /> : null}
 
-				{/* Mobile */}
-				{
-					isMobile
-						? (
-							<Drawer
-								open={sidebarCollapsed}
-								placement="left"
-								width="clamp(200px, 50vw, 210px)"
-								className={cn(classes.drawerStyles)}
-								onClose={() => setSidebarCollapsed(false)}
-							>
-								<LayoutMenu autoOpenMenu menus={sideNavItems} handleMenuSelect={handleMenuSelect} />
-							</Drawer>
-						)
-						: null
-				}
+				{/* Mobile Menu */}
+				<LayoutMobileMenu />
 
 				{/* PC */}
 				{
@@ -142,7 +136,7 @@ export default function ContainerLayout() {
 								computedSidebarWidth={computedSidebarWidth}
 							>
 								<LayoutMenu
-									autoOpenMenu
+									autoExpandCurrentMenu
 									menus={sideNavItems}
 									handleMenuSelect={handleMenuSelect}
 								/>
@@ -165,8 +159,16 @@ export default function ContainerLayout() {
 
 				<LayoutContent />
 
-				<LayoutFooter className="bg-colorBgContainer" />
+				{enableFooter && fixedFooter ? <LayoutFooter className="bg-colorBgContainer" /> : null}
+				{enableBackTopButton
+					? (
+						<FloatButton.BackTop
+							icon={<RocketOutlined />}
+							target={() => document.querySelector(`#${ELEMENT_ID_MAIN_CONTENT} .simplebar-content-wrapper`) as HTMLElement || document}
+						/>
+					)
+					: null}
 			</section>
-		</LayoutContext.Provider>
+		</Watermark>
 	);
 }
